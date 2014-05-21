@@ -1,3 +1,5 @@
+#!/opt/local/bin/python2.7
+# -*- coding: utf-8 -*-
 """ Coded by Iheanyi Ekechukwu
 
 http://www.twitter.com/kwuchu
@@ -14,24 +16,22 @@ import urllib2
 from mutagen.mp3 import MP3
 from mutagen.id3 import TIT2
 from mutagen.easyid3 import EasyID3
-from bs4 import BeautifulSoup
-import requests
+import urllib2
 import sys
-
 import jsobj
 
 
 def parse_file(url):
     print "Starting the parsing for: " + url
-    r = requests.get(url)
-    soup = BeautifulSoup(r.text)
 
+    response = urllib2.urlopen(url)
+    r = response.read()
 
-
-    embedBlock = r.text.split("var EmbedData = ")
+    # embedBlock = r.text.split("var EmbedData = ")
+    embedBlock = r.split("var EmbedData = ")
 
     embedStringBlock = embedBlock[1]
-    embedStringBlock = unicodedata.normalize('NFKD', embedStringBlock).encode('ascii', 'ignore')
+    # embedStringBlock = unicodedata.normalize(u'NFKD', embedStringBlock).encode('ascii', 'ignore')
     embedStringBlock = embedStringBlock.split("};")[0] + "};"
     embedStringBlock = jsobj.read_js_object("var EmbedData = %s" % str(embedStringBlock))
 
@@ -42,11 +42,12 @@ def parse_file(url):
 
     albumTitle = embedData['EmbedData']['album_title']
 
-    block = r.text.split("var TralbumData = ")
+    # block = r.text.split("var TralbumData = ")
+    block = r.split("var TralbumData = ")
     #print block[0]
 
     stringBlock = block[1]
-    stringBlock = unicodedata.normalize('NFKD', stringBlock).encode('ascii', 'ignore')
+    # stringBlock = unicodedata.normalize('NFKD', stringBlock).encode('ascii', 'ignore')
     stringBlock = stringBlock.split("};")[0] + "};"
     stringBlock = jsobj.read_js_object("var TralbumData = %s" % str(stringBlock))
 
@@ -95,7 +96,7 @@ def parse_file(url):
         f = open(albumPath+'/' + each['title']+'.mp3', 'wb')
         meta = u.info()
         file_size = int(meta.getheaders("Content-Length")[0])
-        file_size_dl = 0
+        file_size_dl = 0.0
         block_sz = 8192
         while True:
             buffer = u.read(block_sz)
@@ -105,7 +106,7 @@ def parse_file(url):
             file_size_dl += len(buffer)
             f.write(buffer)
             p = float(file_size_dl) / file_size
-            status = r"[{1:.2%}]".format(file_size_dl, p)
+            status = r"[{1:2.2%}]".format(file_size_dl, p)
             status = status + chr(8) * (len(status) + 1)
             sys.stdout.write("Download progress: %s%%   \r" % (status))
             sys.stdout.flush()
@@ -126,4 +127,5 @@ def parse_file(url):
 
 
 url = raw_input("Please enter the url of the album or song you wish to download: ")
+# url = 'http://gileadmedia.bandcamp.com/album/heathen'
 parse_file(url)
