@@ -53,7 +53,7 @@ def parse_file(url):
 
 
     data = stringBlock
-
+    # print data
     artistName = data['TralbumData']['artist']
 
     firstLetter = artistName[0]
@@ -86,14 +86,22 @@ def parse_file(url):
         os.makedirs(albumPath)
 
     for each in tracks:
+        if not os.path.exists(albumPath):
+            os.makedirs(albumPath)
         songTitle = each['title'].replace(" ", "").replace(".", "")
-        songURL = each['file']['mp3-128']
+        try:
+            songURL = each['file']['mp3-128']
+        except:
+            continue
+        
+        trackNum = each['track_num']
 
         print "Now Downloading: " + each['title'], each['file']['mp3-128']
 
         req = urllib2.Request(songURL, headers={'User-Agent': "Magic Browser"})
         u = urllib2.urlopen(req)
-        f = open(albumPath+'/' + each['title']+'.mp3', 'wb')
+        f = open(albumPath+'/' + each['title'].replace("/", "_")+'.mp3', 'wb')
+
         meta = u.info()
         file_size = int(meta.getheaders("Content-Length")[0])
         file_size_dl = 0.0
@@ -107,7 +115,7 @@ def parse_file(url):
             f.write(buffer)
             p = float(file_size_dl) / file_size
             status = r"[{1:2.2%}]".format(file_size_dl, p)
-            status = status + chr(8) * (len(status) + 1)
+            # status = status + chr(8) * (len(status) + 1)
             sys.stdout.write("Download progress: %s%%   \r" % (status))
             sys.stdout.flush()
 
@@ -121,11 +129,15 @@ def parse_file(url):
         audio["title"] = each['title']
         audio["artist"] = artistName
         audio["album"] = albumTitle
+        audio["tracknumber"] = trackNum
         audio.save()
 
         print "Done downloading " + songTitle
 
 
-url = raw_input("Please enter the url of the album or song you wish to download: ")
+if len(sys.argv) == 2:
+    url = sys.argv[1]
+else:
+    url = raw_input("Please enter the url of the album or song you wish to download: ")
 # url = 'http://gileadmedia.bandcamp.com/album/heathen'
 parse_file(url)
