@@ -126,9 +126,9 @@ def parse_file(url):
         audio["TIT2"] = TIT2(encoding=3, text=["title"])
         audio.save()
         audio = EasyID3(albumPath + '/' + each['title'] + '.mp3')
-        audio["title"] = each['title']
-        audio["artist"] = artistName
-        audio["album"] = albumTitle
+        audio["title"] = each['title'].decode('utf-8')
+        audio["artist"] = unicode(artistName)
+        audio["album"] = unicode(albumTitle)
         audio["tracknumber"] = trackNum
         audio.save()
 
