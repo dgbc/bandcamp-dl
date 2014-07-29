@@ -19,6 +19,7 @@ from mutagen.easyid3 import EasyID3
 import urllib2
 import sys
 import jsobj
+from slugify import slugify
 
 
 def parse_file(url):
@@ -100,7 +101,8 @@ def parse_file(url):
 
         req = urllib2.Request(songURL, headers={'User-Agent': "Magic Browser"})
         u = urllib2.urlopen(req)
-        f = open(albumPath+'/' + each['title'].replace("/", "_")+'.mp3', 'wb')
+        title = slugify(unicode(each['title']))
+        f = open(albumPath+'/' + title +'.mp3', 'wb')
 
         meta = u.info()
         file_size = int(meta.getheaders("Content-Length")[0])
@@ -122,10 +124,10 @@ def parse_file(url):
 
         f.close()
         print "Encoding . . . "
-        audio = MP3(albumPath + '/' + each['title'] + '.mp3')
+        audio = MP3(albumPath + '/' + title + '.mp3')
         audio["TIT2"] = TIT2(encoding=3, text=["title"])
         audio.save()
-        audio = EasyID3(albumPath + '/' + each['title'] + '.mp3')
+        audio = EasyID3(albumPath + '/' + title + '.mp3')
         audio["title"] = each['title'].decode('utf-8')
         audio["artist"] = unicode(artistName)
         audio["album"] = unicode(albumTitle)
